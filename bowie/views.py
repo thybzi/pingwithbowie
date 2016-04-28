@@ -104,3 +104,14 @@ def api_error(error_message, error_code, http_code=500):
         'code': error_code,
     }
     return json.dumps(output), http_code
+
+
+@app.after_request
+def after_request(response):
+    """Add CORS headers
+
+    Args:
+        response (Flask.Response)
+    """
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
