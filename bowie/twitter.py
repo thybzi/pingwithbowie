@@ -424,7 +424,7 @@ def convert_twitter_time(twitter_time):
     Returns:
         str: Time string in format: '2008-08-27 13:08:45'
     """
-    return db.get_timestamp(parse_twitter_time(twitter_time))
+    return get_formatted_datetime(parse_twitter_time(twitter_time))
 
 
 def parse_twitter_time(twitter_time):
