@@ -1,0 +1,3 @@
+#!/bin/bash
+
+cp $OPENSHIFT_DATA_DIR/config.ini $OPENSHIFT_REPO_DIR
