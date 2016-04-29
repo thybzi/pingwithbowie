@@ -86,7 +86,7 @@ def collections():
 
     # Output JSON results
     try:
-        return json.dumps(result)
+        return json.dumps(result, ensure_ascii=False).encode('utf8')
     except:
         return api_error('Result output error', 500)
 
@@ -103,7 +103,7 @@ def api_error(error_message, error_code, http_code=500):
         'error': error_message,
         'code': error_code,
     }
-    return json.dumps(output), http_code
+    return json.dumps(output, ensure_ascii=False).encode('utf8'), http_code
 
 
 @app.after_request
