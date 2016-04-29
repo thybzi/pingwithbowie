@@ -7,7 +7,7 @@ import calendar
 
 
 @app.route('/api/collections/')
-def collected():
+def collections():
     """Return data for previous and recent tweet collections
 
     Example:
