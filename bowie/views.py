@@ -113,5 +113,6 @@ def after_request(response):
     Args:
         response (Flask.Response)
     """
+    response.headers.set('Content-Type', 'application/json; charset=utf-8')
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
