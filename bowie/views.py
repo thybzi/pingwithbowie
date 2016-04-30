@@ -75,6 +75,14 @@ def collections():
             except:
                 return api_error('Tweet data error', 404)
 
+            # Get tweet hashtags
+            try:
+                tweet_hashtags = []
+                for hashtag_data in tweet_data['entities']['hashtags']:
+                    tweet_hashtags.append('#' + hashtag_data['text'])
+            except:
+                return api_error('Tweet data error', 405)
+
             # Append item to results list
             result[key].append({
                 'word': words[i],
@@ -83,6 +91,7 @@ def collections():
                 'tweet_time': tweet_time,
                 'tweet_timestamp': tweet_timestamp,
                 'tweet_content': tweet_content,
+                'tweet_hashtags': tweet_hashtags,
             })
 
     # Output JSON results
@@ -158,6 +167,14 @@ def stat():
             except:
                 return api_error('Tweet data error', 403)
 
+            # Get tweet hashtags
+            try:
+                tweet_hashtags = []
+                for hashtag_data in tweet_data['entities']['hashtags']:
+                    tweet_hashtags.append('#' + hashtag_data['text'])
+            except:
+                return api_error('Tweet data error', 405)
+
             # Consider first tweet was collected immediately (no prev tweet data)
             if i == 0:
                 prev_tweet_timestamp = tweet_timestamp
@@ -167,6 +184,7 @@ def stat():
                 'word': words[i],
                 'word_index': i,
                 'tweet_url': tweet_url,
+                'tweet_hashtags': tweet_hashtags,
                 'tweet_time': tweet_time,
                 'tweet_timestamp': tweet_timestamp,
                 'tweet_time_delta': tweet_timestamp - prev_tweet_timestamp,
