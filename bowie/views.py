@@ -83,9 +83,15 @@ def collections():
             except:
                 return api_error('Tweet data error', 405)
 
+            # Prevent broken collection response if words changed recently
+            try:
+                word = words[i]
+            except:
+                word = '(Unknown)'
+
             # Append item to results list
             result[key].append({
-                'word': words[i],
+                'word': word,
                 'tweet_url': tweet_url,
                 'tweet_author': tweet_author,
                 'tweet_time': tweet_time,
@@ -179,9 +185,15 @@ def stat():
             if i == 0:
                 prev_tweet_timestamp = tweet_timestamp
 
+            # Prevent broken collection response if words changed recently
+            try:
+                word = words[i]
+            except:
+                word = '(Unknown)'
+
             # Append item to results list
             tweets_data.append({
-                'word': words[i] + ' (#%d)' % i,
+                'word': word + ' (#%d)' % i,
                 'tweet_url': tweet_url,
                 'tweet_hashtags': tweet_hashtags,
                 'tweet_time': tweet_time,
