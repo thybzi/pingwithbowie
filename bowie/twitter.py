@@ -130,7 +130,7 @@ def assemble_collection():
             Also add word to `query_words` if its normalized version is unique
             """
             searched_words.append(word)
-            normalized = word.lower()
+            normalized = normalize_string(word)
             if normalized not in query_words:
                 query_words.append(normalized)
 
