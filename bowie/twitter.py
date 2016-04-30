@@ -113,41 +113,54 @@ def assemble_collection():
         """
         return request_counters['vain'] >= VAIN_REQUESTS_UNTIL_FOCUS
 
-    def get_next_words():
+    def get_searched_words():
         """Provide a list of words to be searched next
+        Also provide a search query for twitter, optimized by excluding non-unique words
 
         Raises:
             KeyError: Cannot get primary search word
-            KeyError: Cannot get secondary search words
+            KeyError: Cannot get secondary search word
 
         Returns:
             list of str: ['Three', 'unsearched', 'words']
+            str: 'Three OR unsearched OR words'
         """
+        def add_word(word):
+            """Add word to `searched_words`
+            Also add word to `query_words` if its normalized version is unique
+            """
+            searched_words.append(word)
+            normalized = word.lower()
+            if normalized not in query_words:
+                query_words.append(normalized)
+
         # Prepare empty list for searched words
-        result = []
+        searched_words = []
+        query_words = []
 
         # Determine index of first unsearched word and store word's content
-        primary_word_index = last_word_data['index'] + 1
+        index = last_word_data['index'] + 1
         try:
-            result.append(words[primary_word_index])
+            add_word(words[index])
         except (IndexError, KeyError) as ex:
             raise KeyError('Cannot get primary search word: %s' % ex)
 
         # If focus mode is disabled, also list some following words to be searched for
         if not is_focus_mode():
-            # Determine index range boundaries for secondary words
-            secondary_begin = primary_word_index + 1
-            secondary_end = primary_word_index + WORDS_PER_REQUEST
-            try:
-                # Get list range for secondary words, and append words from this range
-                secondary_words = words[secondary_begin:secondary_end]
-                for word in secondary_words:
-                    result.append(word)
-            except (IndexError, KeyError) as ex:
-                raise KeyError('Cannot get secondary search words: %s' % ex)
+            while (index < words_last_index) and (len(query_words) < WORDS_PER_REQUEST):
+                index += 1
+                try:
+                    add_word(words[index])
+                except (IndexError, KeyError) as ex:
+                    raise KeyError('Cannot get secondary search word: %s' % ex)
+
+        # Build search query for `q` twitter search param
+        if is_hashtag_mode():
+            query_words = map(lambda word: word + ' ' + PRIORITY_HASHTAG, query_words)
+        query = ' OR '.join(query_words)
 
         # Return the list of words to be searched
-        return result
+        return searched_words, query
 
     def filter_older_posts(post):
         """Callback for filtering out the posts which are older than last collected one
@@ -192,14 +205,9 @@ def assemble_collection():
         """
 
         # Get next words to be searched
-        searched_words = get_next_words()
+        searched_words, query = get_searched_words()
         if len(searched_words) < 1:
             raise ValueError('No words to search for')
-
-        if is_hashtag_mode():
-            query = (' ' + PRIORITY_HASHTAG + ' OR ').join(searched_words) + ' ' + PRIORITY_HASHTAG
-        else:
-            query = ' OR '.join(searched_words)
 
         # Prepare search params
         params = {
