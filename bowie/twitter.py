@@ -10,9 +10,11 @@ from Queue import Queue
 import time
 
 
+PRIORITY_HASHTAG = '#singwithbowie'
 REQUEST_INTERVAL = 15 * 60 / 450
 WORDS_PER_REQUEST = 3
 VAIN_REQUESTS_UNTIL_FOCUS = 5
+VAIN_HASHTAG_REQUESTS_MAX = 1
 ITEMS_PER_REQUEST = 100
 
 
@@ -66,14 +68,22 @@ def assemble_collection():
     """Assemble the collection of sequential tweets forming the text"""
 
     def count_vain_request():
-        """Increment counter for requests without any result, and reset productive requests counter"""
+        """Increment counter for requests without any result, and reset productive requests counter
+        Also disable priority hashtag mode if there were too many vain hashtag requests
+        """
         request_counters['vain'] += 1
         request_counters['productive'] = 0
+        if hashtag_mode['enabled'] and (request_counters['vain'] >= VAIN_HASHTAG_REQUESTS_MAX):
+            hashtag_mode['enabled'] = False
 
     def count_productive_request():
-        """Increment counter for requests having at least one result, and reset vain requests counter"""
+        """Increment counter for requests having at least one result, and reset vain requests counter
+        Also re-enable priority hashtag mode if it was disabled previously
+        """
         request_counters['productive'] += 1
         request_counters['vain'] = 0
+        if not hashtag_mode['enabled']:
+            hashtag_mode['enabled'] = True
 
     def set_collected_words_count(count):
         """Store number of words found with last request
@@ -86,6 +96,14 @@ def assemble_collection():
             count_productive_request()
         else:
             count_vain_request()
+
+    def is_hashtag_mode():
+        """Report if priority hashtag mode should be enabled in the next request
+
+        Returns:
+            bool
+        """
+        return hashtag_mode['enabled']
 
     def is_focus_mode():
         """Report if focus mode should be enabled in the next request
@@ -178,9 +196,14 @@ def assemble_collection():
         if len(searched_words) < 1:
             raise ValueError('No words to search for')
 
+        if is_hashtag_mode():
+            query = (' ' + PRIORITY_HASHTAG + ' OR ').join(searched_words) + ' ' + PRIORITY_HASHTAG
+        else:
+            query = ' OR '.join(searched_words)
+
         # Prepare search params
         params = {
-            'q': ' OR '.join(searched_words),
+            'q': query,
             'result_type': 'recent',
             'count': ITEMS_PER_REQUEST,
             'rnd': time.mktime(time.gmtime()),
@@ -358,6 +381,11 @@ def assemble_collection():
         'productive': 0,
         'vain': 0,
         'words_in_last': 0,
+    }
+
+    # Thread-accessible value indicating whether priority hashtag mode is enabled
+    hashtag_mode = {
+        'enabled': True,
     }
 
     # Prepare initial data
