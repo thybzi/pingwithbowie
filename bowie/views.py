@@ -181,8 +181,7 @@ def stat():
 
             # Append item to results list
             tweets_data.append({
-                'word': words[i],
-                'word_index': i,
+                'word': words[i] + ' (#%d)' % i,
                 'tweet_url': tweet_url,
                 'tweet_hashtags': tweet_hashtags,
                 'tweet_time': tweet_time,
